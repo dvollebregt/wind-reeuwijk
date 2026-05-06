@@ -149,7 +149,7 @@
 
   /* Main content */
   .main {
-    padding: 0 16px 100px;
+    padding: 0 16px 32px;
   }
 
   /* Now card */
@@ -321,90 +321,102 @@
   /* Hourly list */
   .hourly-list {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .hour-row {
-    display: grid;
-    grid-template-columns: 44px 1fr 56px 56px 56px;
-    align-items: center;
+    flex-direction: row;
     gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 6px;
+  }
+  .hourly-list::-webkit-scrollbar { display: none; }
+
+  .hour-card {
+    flex-shrink: 0;
+    width: 72px;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 14px;
-    transition: all 0.2s;
+    border-radius: 16px;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
     position: relative;
     overflow: hidden;
+    transition: all 0.2s;
   }
 
-  .hour-row::before {
+  .hour-card.current-hour {
+    border-color: rgba(59,158,255,0.45);
+    background: rgba(17,31,61,0.95);
+  }
+
+  .hour-card.night-block {
+    width: 80px;
+    background: rgba(8,14,28,0.9);
+    border-style: dashed;
+  }
+
+  .hour-card::after {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    border-radius: 14px 0 0 14px;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
     background: var(--wind-color, var(--border));
+    border-radius: 0 0 16px 16px;
   }
 
-  .hour-row.current-hour {
-    border-color: rgba(59,158,255,0.4);
-    background: rgba(17,31,61,0.9);
-  }
-
-  .hour-time {
+  .hour-card-time {
     font-family: 'Space Mono', monospace;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--text);
   }
 
-  .hour-time.muted { color: var(--muted); }
+  .hour-card-time.muted { color: var(--muted); }
 
-  .hour-bar-wrap {
-    position: relative;
-    height: 6px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 3px;
-    overflow: hidden;
+  .hour-card-bar-wrap {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: flex-end;
   }
 
-  .hour-bar {
-    height: 100%;
-    border-radius: 3px;
-    background: var(--wind-color, var(--accent));
-    transition: width 0.8s cubic-bezier(.34,1.56,.64,1);
+  .hour-card-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.6s cubic-bezier(.34,1.56,.64,1);
+    min-height: 3px;
   }
 
-  .hour-wind {
+  .hour-card-wind {
     font-family: 'Space Mono', monospace;
     font-size: 13px;
     font-weight: 700;
-    text-align: right;
     color: var(--wind-color, var(--text));
   }
 
-  .hour-gust {
+  .hour-card-unit {
     font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    text-align: right;
+    font-size: 8px;
     color: var(--muted);
   }
 
-  .hour-dir {
-    font-size: 11px;
-    text-align: right;
-    color: var(--accent2);
-    font-weight: 600;
+  .hour-card-gust {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
   }
 
-  /* Wind color dots */
-  .dir-arrow {
-    display: inline-block;
-    transition: transform 0.3s;
+  .hour-card-dir {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .hour-card-temp {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
   }
 
   /* Summary bar */
@@ -649,7 +661,7 @@
         </div>
       </div>
       <div class="now-stats">
-        <div class="now-wind-unit">WINDSNELHEID</div>
+        <div class="now-wind-unit">KNOPEN (kt)</div>
         <div class="now-wind-speed" id="nowSpeed">--</div>
         <div class="now-direction" id="nowDirection">--</div>
         <div class="now-beaufort" id="nowBeaufort">Bft --</div>
@@ -678,9 +690,6 @@
   <!-- Sources -->
   <div class="sources">
     <div class="source-badge active">▸ OPEN-METEO</div>
-    <div class="source-badge">WINDGURU MODEL</div>
-    <div class="source-badge">WINDFINDER REF</div>
-    <div class="source-badge">WINDSURFICE</div>
   </div>
 
   <!-- Windsurfing suitability -->
@@ -700,32 +709,25 @@
 
   <!-- Hourly legend -->
   <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#00d68f"></div>Zwak 0-4</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#3b9eff"></div>Matig 5-9</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#ffb347"></div>Sterk 10-15</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b"></div>Storm 16+</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00d68f"></div>Windstil 0-4 kt</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b9eff"></div>Matig 5-9 kt</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffb347"></div>Sterk 10-15 kt</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b"></div>Storm 16+ kt</div>
   </div>
 
   <!-- Hourly -->
   <div class="section-label">▸ PER UUR</div>
   <div class="hourly-list" id="hourlyList"></div>
 
+  <!-- Forecast chart -->
+  <div class="section-label" style="margin-top:22px">▸ 48-UURS VOORSPELLING</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:16px;">
+    <canvas id="forecastChart" style="width:100%;display:block;"></canvas>
+  </div>
+
 </div>
 
-<div class="bottom-nav">
-  <div class="nav-item active">
-    <div class="nav-icon">💨</div>
-    <span>WIND</span>
-  </div>
-  <div class="nav-item">
-    <div class="nav-icon">🌡️</div>
-    <span>WEER</span>
-  </div>
-  <div class="nav-item">
-    <div class="nav-icon">🏄</div>
-    <span>SURF</span>
-  </div>
-</div>
+
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
@@ -744,8 +746,8 @@ function degToDir(deg) {
   return DIRS[Math.round(deg / 22.5) % 16];
 }
 
-function msToKnots(ms) { return (ms * 1.944).toFixed(1); }
-function msToKmh(ms)   { return Math.round(ms * 3.6); }
+function msToKnots(ms) { return Math.round(ms * 1.944); }
+function msToKmh(ms)   { return msToKnots(ms); } // alias: alle waarden in knopen
 function msToBft(ms) {
   if (ms < 0.3) return 0;
   if (ms < 1.6) return 1;
@@ -847,7 +849,7 @@ function renderNowCard(data) {
   document.getElementById('nowSpeed').style.color = windColor(ws);
   document.getElementById('nowDirection').textContent = degToDir(wd) + '  ' + Math.round(wd) + '°';
   document.getElementById('nowBeaufort').textContent = `Bft ${bft} · ${bftDesc(bft)}`;
-  document.getElementById('nowGust').textContent = msToKmh(wg) + ' km/h';
+  document.getElementById('nowGust').textContent = msToKnots(wg) + ' kt';
   document.getElementById('nowTemp').textContent = temp.toFixed(1) + '°C';
   document.getElementById('nowRain').textContent = rain + ' mm';
   document.getElementById('nowCloud').textContent = cloud + '%';
@@ -908,7 +910,7 @@ function renderSummary(data) {
 
   let emoji = bft <= 2 ? '🏝️' : bft <= 4 ? '🌬️' : bft <= 6 ? '💨' : bft <= 8 ? '⚡' : '🌪️';
   let title = `${isToday ? 'Vandaag' : label.day + ' ' + label.date}: ${bftDesc(bft)} (Bft ${bft})`;
-  let desc = `Max wind ${msToKmh(maxWind)} km/h · Windstoten tot ${msToKmh(maxGust)} km/h`;
+  let desc = `Max wind ${msToKnots(maxWind)} kt · Windstoten tot ${msToKnots(maxGust)} kt`;
   if (bft >= 4 && bft <= 6) desc += ' · Goede windsurfomstandigheden! 🏄';
   if (bft < 3) desc += ' · Weinig wind, niet ideaal voor surfen.';
   if (bft >= 7) desc += ' · Zware wind, wees voorzichtig op het water!';
@@ -922,59 +924,109 @@ function renderHourly(data) {
   const list = document.getElementById('hourlyList');
   list.innerHTML = '';
 
-  // Filter hours for selected day
   const date = data.daily.time[selectedDay];
   const hours = data.hourly.time;
   const now = new Date();
 
-  const dayHours = hours.map((t, i) => ({ t, i })).filter(({ t }) => t.startsWith(date));
+  const allDayHours = hours.map((t, i) => ({ t, i })).filter(({ t }) => t.startsWith(date));
 
-  // Max wind for bar scaling
-  const maxWS = Math.max(...dayHours.map(({ i }) => data.hourly.windspeed_10m[i]));
+  // Separate night hours (23:00 prev night handled by: hours 0-7 and 23)
+  // We group 23:00 and 00:00–07:00 into one night block
+  const nightHourNums = new Set([23, 0, 1, 2, 3, 4, 5, 6, 7]);
+  const dayItems = allDayHours.filter(({ t }) => {
+    const h = new Date(t).getHours();
+    return !nightHourNums.has(h);
+  });
+  const nightItems = allDayHours.filter(({ t }) => {
+    const h = new Date(t).getHours();
+    return nightHourNums.has(h);
+  });
 
-  dayHours.forEach(({ t, i }) => {
+  // Max wind for bar scaling (across all hours)
+  const maxWS = Math.max(...allDayHours.map(({ i }) => data.hourly.windspeed_10m[i]), 1);
+
+  function makeCard(t, i, isNight = false) {
     const ws = data.hourly.windspeed_10m[i];
     const wg = data.hourly.windgusts_10m[i];
     const wd = data.hourly.winddirection_10m[i];
     const temp = data.hourly.temperature_2m[i];
-    const rain = data.hourly.precipitation[i];
     const hour = new Date(t);
     const isNow = selectedDay === 0 && Math.abs(hour - now) < 1800000;
     const isPast = selectedDay === 0 && hour < now - 1800000;
-    const bft = msToBft(ws);
     const color = windColorHex(ws);
-    const barPct = maxWS > 0 ? (ws / maxWS * 100) : 0;
+    const barH = maxWS > 0 ? Math.max(3, Math.round((ws / maxWS) * 40)) : 3;
 
-    const row = document.createElement('div');
-    row.className = 'hour-row fade-in' + (isNow ? ' current-hour' : '');
-    row.style.setProperty('--wind-color', color);
+    const card = document.createElement('div');
+    card.className = 'hour-card fade-in' + (isNow ? ' current-hour' : '');
+    card.style.setProperty('--wind-color', color);
+    if (isPast) card.style.opacity = '0.45';
 
-    row.innerHTML = `
-      <div class="hour-time ${isPast ? 'muted' : ''}">${formatHour(t)}</div>
-      <div>
-        <div class="hour-bar-wrap">
-          <div class="hour-bar" style="width:${barPct}%;background:${color};${isPast?'opacity:0.4':''}"></div>
-        </div>
-        <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px">${temp.toFixed(1)}°  ${rain>0?'🌧 '+rain+'mm':''}</div>
+    card.innerHTML = `
+      <div class="hour-card-time ${isPast ? 'muted' : ''}">${formatHour(t)}</div>
+      <div class="hour-card-bar-wrap">
+        <div class="hour-card-bar" style="height:${barH}px;background:${color};"></div>
       </div>
-      <div class="hour-wind" style="${isPast?'opacity:0.5':''}">${msToKmh(ws)}<span style="font-size:9px;color:var(--muted)"> km/h</span></div>
-      <div class="hour-gust" style="${isPast?'opacity:0.4':''}">↑${msToKmh(wg)}</div>
-      <div class="hour-dir">${degToDir(wd)}</div>
+      <div class="hour-card-wind">${msToKnots(ws)}</div>
+      <div class="hour-card-unit">kt</div>
+      <div class="hour-card-gust">↑${msToKnots(wg)}</div>
+      <div class="hour-card-dir">${degToDir(wd)}</div>
+      <div class="hour-card-temp">${temp.toFixed(1)}°</div>
     `;
 
     if (isNow) {
       const marker = document.createElement('div');
-      marker.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;border:1.5px solid rgba(59,158,255,0.5);border-radius:14px;pointer-events:none;';
-      row.appendChild(marker);
+      marker.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;border:1.5px solid rgba(59,158,255,0.5);border-radius:16px;pointer-events:none;';
+      card.appendChild(marker);
     }
+    return card;
+  }
 
-    list.appendChild(row);
-  });
+  // Night summary block (23:00–07:00)
+  function makeNightBlock(items) {
+    if (!items.length) return null;
+    const avgWS = items.reduce((s, { i }) => s + data.hourly.windspeed_10m[i], 0) / items.length;
+    const avgWG = items.reduce((s, { i }) => s + data.hourly.windgusts_10m[i], 0) / items.length;
+    // Most common direction
+    const avgWD = items.reduce((s, { i }) => s + data.hourly.winddirection_10m[i], 0) / items.length;
+    const avgT  = items.reduce((s, { i }) => s + data.hourly.temperature_2m[i], 0) / items.length;
+    const color = windColorHex(avgWS);
+    const barH = maxWS > 0 ? Math.max(3, Math.round((avgWS / maxWS) * 40)) : 3;
 
-  // Scroll to current hour if today
+    const card = document.createElement('div');
+    card.className = 'hour-card night-block fade-in';
+    card.style.setProperty('--wind-color', color);
+    card.innerHTML = `
+      <div class="hour-card-time" style="font-size:9px;letter-spacing:0.5px">🌙 NACHT</div>
+      <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted)">23–08u</div>
+      <div class="hour-card-bar-wrap">
+        <div class="hour-card-bar" style="height:${barH}px;background:${color};opacity:0.6;"></div>
+      </div>
+      <div class="hour-card-wind">${msToKnots(avgWS)}</div>
+      <div class="hour-card-unit">kt gem.</div>
+      <div class="hour-card-gust">↑${msToKnots(avgWG)}</div>
+      <div class="hour-card-dir">${degToDir(avgWD)}</div>
+      <div class="hour-card-temp">${avgT.toFixed(1)}°</div>
+    `;
+    return card;
+  }
+
+  // Build: night block first (00-07), then day hours (08-22), then night block (23)
+  const earlyNight = nightItems.filter(({ t }) => new Date(t).getHours() < 8);
+  const lateNight  = nightItems.filter(({ t }) => new Date(t).getHours() >= 8);
+
+  const allNight = [...earlyNight, ...lateNight];
+
+  if (allNight.length) {
+    const nb = makeNightBlock(allNight);
+    if (nb) list.appendChild(nb);
+  }
+
+  dayItems.forEach(({ t, i }) => list.appendChild(makeCard(t, i)));
+
+  // Scroll to current hour
   if (selectedDay === 0) {
-    const currentRow = list.querySelector('.current-hour');
-    if (currentRow) setTimeout(() => currentRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+    const currentCard = list.querySelector('.current-hour');
+    if (currentCard) setTimeout(() => currentCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 300);
   }
 }
 
@@ -984,6 +1036,234 @@ function renderAll(data) {
   renderSummary(data);
   renderHourly(data);
   if (selectedDay === 0) renderNowCard(data);
+  renderForecastChart(data);
+}
+
+// ── FORECAST CHART ───────────────────────────────────────────────────────────
+function renderForecastChart(data) {
+  const canvas = document.getElementById('forecastChart');
+  if (!canvas) return;
+
+  // Use 48 hours from now
+  const now = new Date();
+  const allHours = data.hourly.time.map((t, i) => ({ t, i, date: new Date(t) }));
+  const hours = allHours.filter(h => h.date >= now - 3600000).slice(0, 49);
+  if (!hours.length) return;
+
+  const DPR = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth;
+  const H = 260;
+  canvas.width  = W * DPR;
+  canvas.height = H * DPR;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+
+  // Layout
+  const PAD_L = 36, PAD_R = 44, PAD_T = 28, PAD_B = 44;
+  const chartW = W - PAD_L - PAD_R;
+  const chartH = H - PAD_T - PAD_B;
+
+  // Data arrays
+  const ws  = hours.map(h => data.hourly.windspeed_10m[h.i]);
+  const wg  = hours.map(h => data.hourly.windgusts_10m[h.i]);
+  const wd  = hours.map(h => data.hourly.winddirection_10m[h.i]);
+  const tmp = hours.map(h => data.hourly.temperature_2m[h.i]);
+  const cc  = hours.map(h => data.hourly.cloudcover[h.i]);
+  const rn  = hours.map(h => data.hourly.precipitation[h.i]);
+
+  // Convert wind to knots
+  const wsKt = ws.map(v => v * 1.944);
+  const wgKt = wg.map(v => v * 1.944);
+
+  // Scales
+  const maxKt = Math.max(25, ...wgKt) * 1.05;
+  const minTmp = Math.min(...tmp) - 2;
+  const maxTmp = Math.max(...tmp) + 2;
+
+  function xPos(i) { return PAD_L + (i / (hours.length - 1)) * chartW; }
+  function yWind(kt) { return PAD_T + chartH - (kt / maxKt) * chartH; }
+  function yTemp(t)  { return PAD_T + chartH - ((t - minTmp) / (maxTmp - minTmp)) * chartH; }
+
+  // ── BACKGROUND ──────────────────────────────────────────────────────────
+  ctx.fillStyle = '#0d1b35';
+  ctx.fillRect(0, 0, W, H);
+
+  // Bft bands background
+  const bftLevels = [
+    { kt: 0,    color: 'rgba(255,255,255,0.02)' },
+    { kt: 3.5,  color: 'rgba(0,214,143,0.06)' },
+    { kt: 7,    color: 'rgba(56,189,248,0.07)' },
+    { kt: 10.5, color: 'rgba(251,146,60,0.07)' },
+    { kt: 17,   color: 'rgba(248,113,113,0.08)' },
+    { kt: 24,   color: 'rgba(196,77,255,0.08)' },
+  ];
+  bftLevels.forEach((band, bi) => {
+    const y1 = yWind(band.kt);
+    const y2 = bi + 1 < bftLevels.length ? yWind(bftLevels[bi + 1].kt) : PAD_T;
+    ctx.fillStyle = band.color;
+    ctx.fillRect(PAD_L, y2, chartW, y1 - y2);
+  });
+
+  // Horizontal grid lines + Bft labels
+  const bftMarks = [
+    { kt: 0, label: '0 Bft' },
+    { kt: 3.5,  label: '1' },
+    { kt: 7,    label: '2 Bft' },
+    { kt: 10.5, label: '3' },
+    { kt: 14,   label: '4 Bft' },
+    { kt: 17.5, label: '5' },
+    { kt: 21.5, label: '6 Bft' },
+  ];
+  ctx.textAlign = 'right';
+  ctx.font = `${9 * DPR / DPR}px monospace`;
+  bftMarks.forEach(({ kt, label }) => {
+    if (kt > maxKt) return;
+    const y = yWind(kt);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(PAD_L + chartW, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(107,138,173,0.9)';
+    ctx.fillText(label, PAD_L - 3, y + 3);
+  });
+
+  // Knot axis right
+  const ktMarks = [5, 10, 15, 20, 25];
+  ctx.textAlign = 'left';
+  ktMarks.forEach(kt => {
+    if (kt > maxKt) return;
+    const y = yWind(kt);
+    ctx.fillStyle = 'rgba(107,138,173,0.7)';
+    ctx.fillText(kt + ' kt', PAD_L + chartW + 3, y + 3);
+  });
+
+  // Day separators + day labels
+  let lastDay = null;
+  hours.forEach((h, i) => {
+    const d = h.date;
+    const dayStr = d.toDateString();
+    if (dayStr !== lastDay) {
+      if (lastDay !== null) {
+        const x = xPos(i);
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(x, PAD_T); ctx.lineTo(x, PAD_T + chartH); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      // Day label
+      const DAY_NL2 = ['zo','ma','di','wo','do','vr','za'];
+      const MONTH_NL2 = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+      const label = DAY_NL2[d.getDay()] + ' ' + d.getDate() + ' ' + MONTH_NL2[d.getMonth()];
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillStyle = 'rgba(232,244,253,0.7)';
+      const lx = lastDay === null ? PAD_L + 4 : xPos(i) + 4;
+      ctx.fillText(label, lx, PAD_T - 8);
+      lastDay = dayStr;
+    }
+  });
+
+  // ── WIND GUST BAND (green fill between wind and gust) ───────────────────
+  ctx.beginPath();
+  hours.forEach((h, i) => { i === 0 ? ctx.moveTo(xPos(i), yWind(wgKt[i])) : ctx.lineTo(xPos(i), yWind(wgKt[i])); });
+  hours.slice().reverse().forEach((h, ri) => {
+    const i = hours.length - 1 - ri;
+    ctx.lineTo(xPos(i), yWind(wsKt[i]));
+  });
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + chartH);
+  grad.addColorStop(0, 'rgba(0,214,143,0.35)');
+  grad.addColorStop(1, 'rgba(56,189,248,0.15)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // ── WIND SPEED LINE ──────────────────────────────────────────────────────
+  ctx.beginPath();
+  hours.forEach((h, i) => { i === 0 ? ctx.moveTo(xPos(i), yWind(wsKt[i])) : ctx.lineTo(xPos(i), yWind(wsKt[i])); });
+  ctx.strokeStyle = 'rgba(0,214,143,0.9)';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // ── TEMPERATURE LINE ─────────────────────────────────────────────────────
+  ctx.beginPath();
+  hours.forEach((h, i) => { i === 0 ? ctx.moveTo(xPos(i), yTemp(tmp[i])) : ctx.lineTo(xPos(i), yTemp(tmp[i])); });
+  ctx.strokeStyle = 'rgba(251,113,94,0.85)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.stroke();
+
+  // ── WEATHER ICONS (every 3 hours, daytime) ───────────────────────────────
+  const iconMap = {
+    sun: '☀️', cloud: '⛅', cloudy: '☁️', rain: '🌧️', snow: '❄️', night: '🌙', nightcloud: '🌑'
+  };
+  hours.forEach((h, i) => {
+    if (i % 3 !== 0) return;
+    const hr = h.date.getHours();
+    const cloud = cc[i];
+    const rain = rn[i];
+    const isNight = hr < 6 || hr >= 21;
+    let icon;
+    if (rain > 0.5) icon = '🌧';
+    else if (isNight) icon = cloud > 60 ? '☁️' : '🌙';
+    else if (cloud < 25) icon = '☀️';
+    else if (cloud < 60) icon = '⛅';
+    else icon = '☁️';
+
+    const x = xPos(i);
+    const y = PAD_T + 6;
+    ctx.font = '13px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(icon, x, y + 10);
+  });
+
+  // ── NOW LINE ─────────────────────────────────────────────────────────────
+  const nowX = xPos(0);
+  ctx.strokeStyle = 'rgba(59,158,255,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(nowX, PAD_T); ctx.lineTo(nowX, PAD_T + chartH); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── TIME AXIS ────────────────────────────────────────────────────────────
+  ctx.textAlign = 'center';
+  ctx.font = '9px monospace';
+  ctx.fillStyle = 'rgba(107,138,173,0.8)';
+  hours.forEach((h, i) => {
+    const hr = h.date.getHours();
+    if (hr % 6 !== 0) return;
+    const x = xPos(i);
+    ctx.fillText(hr.toString().padStart(2,'0'), x, PAD_T + chartH + 12);
+    // tick
+    ctx.strokeStyle = 'rgba(107,138,173,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, PAD_T + chartH); ctx.lineTo(x, PAD_T + chartH + 4); ctx.stroke();
+  });
+
+  // ── WIND DIRECTION ARROWS ────────────────────────────────────────────────
+  hours.forEach((h, i) => {
+    if (i % 2 !== 0) return;
+    const x = xPos(i);
+    const y = PAD_T + chartH + 28;
+    const angle = (wd[i] * Math.PI) / 180;
+    const len = 6;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.strokeStyle = wsKt[i] > 14 ? 'rgba(251,146,60,0.8)' : 'rgba(107,138,173,0.7)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, -len); ctx.lineTo(0, len);
+    ctx.moveTo(0, -len); ctx.lineTo(-3, -len + 4);
+    ctx.moveTo(0, -len); ctx.lineTo(3, -len + 4);
+    ctx.stroke();
+    ctx.restore();
+  });
 }
 
 // ── MAIN ────────────────────────────────────────────────────────────────────
